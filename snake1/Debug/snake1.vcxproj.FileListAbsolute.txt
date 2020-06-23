@@ -1,0 +1,2 @@
+D:\toolkit\c++\projects\snake1\git\snake1\Debug\snake1.exe
+D:\toolkit\c++\projects\snake1\git\snake1\Debug\snake1.pdb
