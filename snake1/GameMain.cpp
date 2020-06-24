@@ -103,7 +103,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             snake.Keys[key] = GL_FALSE;
             snake.KeysProcessed[key] = GL_FALSE;
         }
-
     }
 
 }

@@ -49,6 +49,7 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
     // calculate dimensions
     unsigned int height = tileData[0].size();
     unsigned int width = tileData[0].size(); // note we can index vector at [0] since this function is only called if height > 0
+    units = static_cast<float>(width);
     unit_width = levelWidth / static_cast<float>(width);
     unit_height = levelHeight / static_cast<float>(height);
     // initialize level tiles based on tileData		

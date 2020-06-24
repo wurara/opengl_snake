@@ -49,12 +49,10 @@ public:
     void ResetLevel();
     void ResetPlayer();
     // ”Œœ∑—≠ª∑
-    void ProcessInput(float dt);
-    void Update(float dt);
+    void ProcessInput(GLfloat dt);
+    void Update(GLfloat dt);
     void Render();
-    void DoCollisions();
-    void SpawnPowerUps(GameObject& block);
-    void UpdatePowerUps(GLfloat dt);
+    void checkFoodEatten();
 };
 
 #endif

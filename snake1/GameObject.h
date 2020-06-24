@@ -15,7 +15,7 @@
 #include "texture.h"
 #include "SpriteRender.h"
 
-#define PI 3.1415926
+#define PI 3.14
 
 enum Direction {
     UP,
@@ -33,7 +33,7 @@ public:
     // Object state
     glm::vec2   position, size, velocity;
     glm::vec3   color;
-    GLfloat     rotation,direction;
+    GLfloat     rotation,speed;
     int changPointCount;
     GLboolean   throughable;
     GLboolean   destroyed;

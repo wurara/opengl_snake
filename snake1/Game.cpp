@@ -19,6 +19,7 @@
 #include "PostProcessor.h"
 #include "TextRender.h"
 #include "SnakeObject.h"
+#include "Foods.h"
 
 
 
@@ -32,8 +33,6 @@ const glm::vec2 PLAYER_SIZE(100, 20);
 // 初始化当班的速率
 const GLfloat PLAYER_VELOCITY(500.0f);
 
-//玩家对象
-GameObject* Player;
 //粒子生成器
 ParticleGenerator* Particles;
 //文本
@@ -52,6 +51,8 @@ BallObject* Ball;
 
 //蛇
 SnakeObject* snake;
+//食物
+Foods foods;
 
 //特效
 PostProcessor* Effects;
@@ -85,8 +86,10 @@ void Game::Init()
     ResourceManager::LoadTexture("textures/snakeHead.png", GL_TRUE, "snakeHead");
     ResourceManager::LoadTexture("textures/snakeBody.png", GL_TRUE, "snakeBody");
     ResourceManager::LoadTexture("textures/snakeTail.png", GL_TRUE, "snakeTail");
+    ResourceManager::LoadTexture("textures/apple.png", GL_TRUE, "apple");
     ResourceManager::LoadTexture("textures/grass.jpg", GL_FALSE, "grass");
     ResourceManager::LoadTexture("textures/sand.jpg", GL_FALSE, "sand");
+
     //加载配置文件
 
     //新建render对象
@@ -110,62 +113,56 @@ void Game::Init()
 
     //初始化蛇
     snake = new SnakeObject(Levels[Level].unit_width);
+    //生成第一份食物
+    foods.generate(Levels[Level].units, Levels[Level].unit_height);
+
+    SoundEngine->play2D("audio/bgm.mp3",true);
 }
 
 void Game::ResetLevel()
 {
-    if (Level == 0)Levels[0].Load("levels/one.lvl", this->Width, this->Height * 0.5f);
-    else if (Level == 1)
-        Levels[1].Load("levels/two.lvl", this->Width, this->Height * 0.5f);
-    else if (Level == 2)
-        Levels[2].Load("levels/three.lvl", this->Width, this->Height * 0.5f);
-    else if (Level == 3)
-        Levels[3].Load("levels/four.lvl", this->Width, this->Height * 0.5f);
-
-    this->Lives = 3;
 }
 
 void Game::ResetPlayer()
 {
-    // Reset player/ball stats
-    Player->size = PLAYER_SIZE;
-    Player->position = glm::vec2(this->Width / 2 - PLAYER_SIZE.x / 2, this->Height - PLAYER_SIZE.y);
-    Ball->Reset(Player->position + glm::vec2(PLAYER_SIZE.x / 2 - BALL_RADIUS, -(BALL_RADIUS * 2)), INITIAL_BALL_VELOCITY);
 }
 //更新逻辑数据
 void Game::Update(GLfloat dt)
 {
-    snake->move();
+    snake->move(this->Width);
+    checkFoodEatten();
 }
 
 
 void Game::ProcessInput(GLfloat dt)
 {
-	Direction snakeDirection;
-	if (this->Keys[GLFW_KEY_W]&&Keys[GLFW_KEY_W]==GL_TRUE) {
-        snake->changeDirection(UP);
-        Keys[GLFW_KEY_W] = GL_FALSE;
+    
+	if (this->Keys[GLFW_KEY_W]) {
+        snake->changeDirection(UP, dt);
 	}
-	if (this->Keys[GLFW_KEY_S] && Keys[GLFW_KEY_S] == GL_TRUE) {
-        snake->changeDirection(DOWN);
-        Keys[GLFW_KEY_S] = GL_FALSE;
+	else if (this->Keys[GLFW_KEY_S]) {
+        snake->changeDirection(DOWN, dt);
 	}
-	if (this->Keys[GLFW_KEY_D] && Keys[GLFW_KEY_D] == GL_TRUE) {
-        snake->changeDirection(RIGHT);
-        Keys[GLFW_KEY_D] = GL_FALSE;
+	else if (this->Keys[GLFW_KEY_D]) {
+        snake->changeDirection(RIGHT, dt);
 	}
-	if (this->Keys[GLFW_KEY_A] && Keys[GLFW_KEY_A] == GL_TRUE) {
-        snake->changeDirection(LEFT);
-        Keys[GLFW_KEY_A] = GL_FALSE;
+	else if (this->Keys[GLFW_KEY_A]) {
+        snake->changeDirection(LEFT, dt);
 	}
-
+    else if (this->Keys[GLFW_KEY_SPACE]) {
+        snake->grow();
+        this->Keys[GLFW_KEY_SPACE] = false;
+    }
 }
 
 void Game::Render()
 {
     Levels[Level].Draw(*spritRender);
-    snake->Draw(*spritRender);
+    snake->draw(*spritRender);
+    foods.draw(*spritRender);
 }
+
+
 
 Direction VectorDirection(glm::vec2 target)
 {
@@ -189,4 +186,19 @@ Direction VectorDirection(glm::vec2 target)
     return (Direction)best_match;
 }
 
+void Game::checkFoodEatten()
+{
+    glm::vec2 mousePosition = snake->snake[0].position + glm::vec2(Levels[Level].unit_height, Levels[Level].unit_height / 2);
+    
+    for (int i = 0; i < foods.foods.size();i++) {
+        glm::vec2 foodPosition = foods.foods[i].position + glm::vec2(Levels[Level].unit_height, Levels[Level].unit_height);
+        if (mousePosition.x > foods.foods[i].position.x && mousePosition.y > foods.foods[i].position.y
+            && mousePosition.x < foodPosition.x && mousePosition.y < foodPosition.y) {
+            foods.foods[i].destroyed = GL_TRUE;
+            snake->grow();
+            SoundEngine->play2D("audio/eat.mp3",false);
+            foods.generate(Levels[Level].units, Levels[Level].unit_height);
+        }
+    }
+}
 
